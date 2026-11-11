@@ -2,7 +2,7 @@
 
 A Factorio **2.1+** mod that adds a **Companion**: a helper that follows you around, builds for you, and, in **Base Development** mode, runs a good part of your base on its own.
 
-There is no Space Age integration yet: the mod does not add anything specific to Space Age content.
+There is no Space Age integration yet: the mod does not add anything specific to Space Age content but can still run with Space Age On.
 
 **Current version: 0.20.1** (the next planned version bump is 0.30, which will not happen for a while).
 
