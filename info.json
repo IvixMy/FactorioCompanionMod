@@ -1,0 +1,11 @@
+{
+  "name": "engineer-companion",
+  "version": "0.20.1",
+  "title": "Engineer Companion",
+  "author": "you",
+  "factorio_version": "2.1",
+  "dependencies": [
+    "base >= 2.0.0"
+  ],
+  "description": "An engineer companion that follows you, auto-builds ghosts from chests, crafts what it is missing, roams near its buildings, finds the best ore patch, deploys blueprints (e.g. miners) on it, and builds a small automation science factory (3 science + 3 gear assemblers) and a transport belt assembler, fed with plates by hand. Building zones (science factories, belt factory...) can be given a blueprint (pasted string or from the cursor) which the Engineer then places, powers and builds instead of its own layout."
+}

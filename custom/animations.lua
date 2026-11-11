@@ -1,0 +1,23 @@
+-- OPTIONAL manual manifest (see README.md in this folder). You normally do NOT need this file: to change an
+-- animation, replace custom/<name>/sheet.png and edit custom/<name>/animation.lua (custom/talk/, custom/idle/...).
+--
+-- Use this file for what a folder cannot say:
+--   * frame_size: the frame size of EVERY animation that has no `width`/`height` of its own (default 256x256);
+--   * aliases:    whenever "working" is asked for, show "hammering";
+--   * folders:    names of YOUR OWN animation folders (custom/hammering/animation.lua + sheet.png). The built-in names
+--                 (idle, talk, working, thinking, happy, worried, tired) are always looked for;
+--   * animations: sheets that live somewhere else (this overrides the folders of the same name).
+-- Restart Factorio after changing it (sprites are made when the game loads).
+--
+-- Example (remove the "--" to use it):
+--
+-- return {
+--   frame_size = {width = 400, height = 600},
+--   folders = {"hammering"},                           -- uses custom/hammering/
+--   aliases = {working = "hammering", worried = "idle"},
+--   animations = {
+--     wave = {file = "__engineer-companion__/custom/my_wave.png", frames = 6, columns = 3, ticks = 5},
+--   },
+-- }
+
+return {}

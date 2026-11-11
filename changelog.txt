@@ -1,0 +1,414 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.20.1
+Date: 2026-11-10
+  Features:
+    - The voice lines: crafting (2), meet (3), thinking (1) and low power (1) - converted to .ogg and levelled to a
+      peak of -3 dB (they were -10 to -24 dB, much quieter than the game's sounds). idle, working and enemy_attack
+      are still placeholder tones until their lines exist.
+    - New situation "thinking": plays when a NEW research starts (setting ec-voice-thinking).
+---------------------------------------------------------------------------------------------------
+Version: 0.20.0
+Date: 2026-11-09
+  Features:
+    - VOICE framework (scripts/voice.lua): the Companion speaks in the WORLD, outside the Talk window. A situation =
+      detector + priority + cooldown + sound group; every 15 ticks the detectors run and the best ready one plays
+      (one line at a time, a minimum gap between lines; warnings may interrupt). Situations: idle, meet (long time
+      since it saw you), working, crafting, low_power (the machines around you cannot get power - a sample of the
+      machines within 80 tiles), enemy_attack (3+ enemy units near you, once per wave).
+    - Sounds: sound/voice/<situation>/ (PLACEHOLDER tones - replace them) listed in sound/sounds.lua as
+      voice_<situation>; several files in a group play a random one. See sound/voice/README.md.
+    - Settings per player: master switch, volume, gap between lines, optional text above it, each situation on/off,
+      idle seconds, "long time" minutes for meeting, enemy warning radius.
+    - Extending: custom/voices.lua registers your own situations; other mods call
+      remote.call("engineer_companion_voice", "say", player_index, id).
+---------------------------------------------------------------------------------------------------
+Version: 0.19.10
+Date: 2026-11-09
+  Fixes:
+    - Restocking never interrupts work any more. The planner now builds / deconstructs everything the CARRIED items
+      can do first (near, then far), and only when nothing more can be done from the inventory does it go for the
+      restock: ONE round that tops up everything on the requests list. (Before, a restock check ran before every
+      job: with 30 miners left and miner ghosts right next to it, it walked off to restock.)
+---------------------------------------------------------------------------------------------------
+Version: 0.19.9
+Date: 2026-11-09
+  Features:
+    - Bots first: a ghost far away (farther than ec-bot-skip-distance, default 20 tiles) that a logistic network with
+      construction robots covers - and that holds the item - is left to the robots: no trip for it (scripts/bot_claims.lua).
+      It looks again every 1.5 s while walking to a ghost, in case robots took the job. Only a check: nothing is
+      reserved or blocked. Setting ec-skip-bot-ghosts.
+    - The ghost the Companion is building (or fetching the material for) is shaded in a colour from the settings
+      (ec-ghost-mark-color, ec-ghost-mark-enabled). Only a picture, nothing is reserved (scripts/ghost_mark.lua).
+  Fixes:
+    - Restocking no longer sends it back for a small shortage: with MIN = MAX = 50 one used drill (49 left) made it
+      walk back to the chest for ONE drill after a very long trip. "Low" now means under the MIN and missing at least
+      a quarter of the MAX (or less than half the MIN left). A chest farther than 150 tiles only interrupts the
+      work when an item is nearly used up (40 % of the MAX or less); idle top-ups are unchanged.
+---------------------------------------------------------------------------------------------------
+Version: 0.19.8
+Date: 2026-11-08
+  Fixes:
+    - "Travelling" / teleports on short trips although fast travel was off: the "no way to the target" fallback
+      started a journey or teleported WITHOUT looking at the setting. Now no fallback teleports unless the new
+      setting ec-teleport-fallback (default OFF) is on, and the journey only if ec-journey-enabled is on.
+    - No route to a goal (twice): the Companion walks straight at it as far as the terrain allows (no progress for
+      half a second = as near as it gets) and the task goes on from there ("blind" walking).
+    - A goal inside / next to a big building no longer counts as "no route": the second try accepts a route that ends
+      up to 1.5 x the reach from the goal, and the walk ends there instead of asking again.
+    - Building a ghost the Companion stands in: it WALKS out of the footprint instead of teleporting (the teleport
+      is back with ec-teleport-fallback).
+    - The "wedged" nudge (moves it to a free spot when stuck inside something) only with ec-teleport-fallback.
+  (Calling it to you and the follow-teleport at 40+ tiles are unchanged.)
+---------------------------------------------------------------------------------------------------
+Version: 0.19.7
+Date: 2026-11-08
+  Features:
+    - The hop walking is configurable in the mod settings (per player): ec-hop-length (tiles per hop, default 60),
+      ec-hop-min-trip (walk in hops from this distance, default 90), ec-hop-prefetch (calculate the next hop while
+      walking the current one, default on).
+  Changes:
+    - A hop goal with no route is tried 6 times (other angles, shorter hops) before one long search to the
+      target - for goals ~1000 tiles away such a search is what costs the frames.
+---------------------------------------------------------------------------------------------------
+Version: 0.19.6
+Date: 2026-11-08
+  Changes:
+    - Long trips are WALKED for real, in hops (scripts/pathing.lua): a trip over 90 tiles is split into hops of 60
+      tiles along the line to the goal. The first hop is searched normally; while the companion walks it, the NEXT hop
+      is already being calculated from the end of the current route (low priority: it never takes the pathfinder's
+      budget), and swapped in when the current one is done. A hop goal with no route (lake, island) is tried at other
+      angles / shorter before one long search.
+    - The game's path cache is used for routes (repeated trips between the same places are cheap). After being
+      stuck it asks again with the cache off.
+    - The fast-travel "journey" of 0.19.5 is an option now (ec-journey-enabled), OFF by default. It remains the
+      fallback for a goal that has no route at all and is more than 30 tiles away.
+---------------------------------------------------------------------------------------------------
+Version: 0.19.5
+Date: 2026-11-08
+  Features:
+    - Long trips take TRAVEL TIME instead of a route search and an instant teleport (how Fallout's fast travel and
+      Skyrim's off-screen NPCs work; HPA*-style: coarse for the long part, detailed only for the last stretch). A trip
+      of 100+ tiles (setting ec-journey-distance) is a journey: the Companion stands still for the time the walk
+      would take (ec-journey-speed, 100 % = walking speed), "Travelling... N s" shows above it, then it appears
+      ~24 tiles from the goal and walks / path-finds the rest. Setting ec-journey-enabled turns it off.
+  Changes:
+    - The "no way to the target" jump is an instant teleport only up to 30 tiles; farther it is a journey (it used to
+      teleport across the whole map and back).
+    - The route search for a vehicle is low priority: a long search no longer takes the pathfinder's budget (frames).
+---------------------------------------------------------------------------------------------------
+Version: 0.19.4
+Date: 2026-11-08
+  Changes:
+    - The mode "Auto-build ghosts from chests" is now called "Base development" (the saved mode is unchanged).
+    - custom/noise/ has 6 frames now (was 100).
+  Fixes:
+    - Frame rate: the ghost-on-water check no longer runs on every ghost in every planning round (it runs only when
+      the build of a ghost failed, scripts/ground.lua fix()). The vehicle settings are read once a second, not 16
+      times every tick. A goal the game found no route to is remembered for 30 s: no more hopeless searches (which
+      flood the whole region) for the same goal - it stands next to it once and carries on (scripts/pathing.lua).
+    - Calling the Engineer to you, or the follow-teleport, put it ON your position: both characters were stuck.
+      It is put on a free spot 3+ tiles beside you now (common.teleport_beside).
+---------------------------------------------------------------------------------------------------
+Version: 0.19.3
+Date: 2026-11-08
+  Features:
+    - Static between animations: custom/noise/ (6 frames of 256x256) plays for half a second
+      whenever the Engineer's animation changes (idle, talk, working, thinking, happy...) or its state does, with the
+      state-change sound. At most once per 1.5 s, so a flickering state does not strobe.
+  Graphics:
+    - New custom/working/ and custom/thinking/ sheets (6 frames of 512x512, 10 ticks per frame).
+---------------------------------------------------------------------------------------------------
+Version: 0.19.2
+Date: 2026-11-07
+  Features:
+    - Ghosts on water: an entity ghost that cannot be built because it stands on water now gets landfill TILE
+      ghosts under its footprint first (scripts/ground.lua). The landfill is supplied like any other ghost's item
+      (carried / chest / crafted), the entity is built once the ground is there. Setting: ec-build-ground.
+    - Long trips: when no vehicle is near, the Companion crafts a car (materials from its inventory or your chests,
+      hand-crafted like any other item) and puts it down (scripts/vehicle_supply.lua). Setting: ec-vehicle-craft.
+    - A vehicle with an empty / low tank is no longer ignored: the Companion fuels it with the BEST fuel it can
+      get (most energy per item): what it carries, else a chest / the coal drills / coal mined or wood chopped by
+      hand, then carries on with its task. During a long drive it tops the tank up from the carried fuel.
+---------------------------------------------------------------------------------------------------
+Version: 0.19.1
+Date: 2026-11-06
+  Features:
+    - Talk window: when the Engineer's state changes (idle -> working, blocked, waiting, research...) it makes a
+      NOISE: a short blip sound plus the "noise" animation for a second (custom/noise/ if you add that folder,
+      else the talk animation). sound/state_change/ holds the sounds; drop sound/state_<state id>/ groups in
+      sounds.lua for a state of its own. At most one noise per 3 seconds.
+  Fixes:
+    - Walking is PATH-FIRST now (scripts/pathing.lua). It used to walk in a straight line until it noticed
+      trouble; sliding along a wall counted as progress, so it kept pushing against buildings. Now: only a short
+      hop with a verified-free corridor is walked directly, everything else waits for the game's route, which is
+      densified so the 8-direction walking cannot cut corners. Stuck = no progress TOWARDS THE AIM. A moving
+      target (following you) gets a new route while the old one is still followed.
+---------------------------------------------------------------------------------------------------
+Version: 0.19.0
+Date: 2026-11-02
+  Features:
+    - DEFEND: new checkbox "Defend me" in the menu (per player, off by default). While the Engineer follows you
+      (Follow only / Follow and build nearby ghosts) it shoots the enemy that is closest to YOU: it walks into
+      range (never more than 32 tiles from you) and fires, then goes back to following. It uses a spare gun from
+      your inventory (or gets a free submachine gun) and takes ammo from your inventory; both are given back when
+      you untick the box or dismiss it. scripts/defense.lua (constants at the top).
+  Changes:
+    - The Engineer is no longer selectable: with the mouse over it, your aim no longer snaps onto it when you
+      shoot enemies next to it. E (open GUI) still talks to it when the cursor is on it; SHIFT+F works as before.
+---------------------------------------------------------------------------------------------------
+Version: 0.18.0
+Date: 2026-11-02
+  Features:
+    - The companion can have its OWN in-world animations (idle, running, mining, idle_gun, running_gun, with
+      optional shadows), independent of the player's character: build_custom.py packs frames/companion/ into
+      graphics/body/ and writes body/body.lua, which data-final-fixes.lua loads. Only
+      engineer-companion-character is changed.
+---------------------------------------------------------------------------------------------------
+Version: 0.17.2
+Date: 2026-11-02
+  Features:
+    - custom/folders.lua (written by build_custom.py) lists every custom/<n>/ animation folder, so your own
+      animation names (forest_talk, factory_happy...) are registered without editing custom/animations.lua.
+    - SOUND. sound/sounds.lua (written by build_custom.py) lists the sound groups of sound/<group>/. Each group is
+      a sound prototype "ec-sound-<group>". The Engineer plays the group named like the dialogue situation
+      (greeting, farewell, research_finished...), or the `sound = "<group>"` of a dialogue line.
+---------------------------------------------------------------------------------------------------
+Version: 0.17.1
+Date: 2026-11-01
+  Fixes:
+    - custom/<name>/animation.lua written in Factorio's own format (filename, frame_count, line_length,
+      animation_speed) was skipped and the placeholder was shown instead. Those names are accepted now (and
+      animation_speed is converted to ticks).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.17.0
+Date: 2026-11-01
+  Features:
+    - Animations are set per FOLDER now: custom/idle/, custom/talk/, custom/working/, custom/thinking/,
+      custom/happy/, custom/worried/, custom/tired/. Each folder holds sheet.png (the sprite sheet) and a tiny
+      animation.lua (frames, ticks; optional columns, width/height, loop, caption, file, alias). Replace the sheet,
+      set the frame count, restart: that's it. They ship with the placeholder sheets already in place.
+    - A folder can be a plain alias (`return {alias = "idle"}`), so no sheet is needed for an animation you do not have.
+    - Your own animation names: make custom/<name>/ and list the name in `folders` of custom/animations.lua.
+    - A broken custom/<name>/animation.lua is reported in factorio-current.log instead of being ignored silently.
+  Changes:
+    - custom/animations.lua is now an optional manual manifest (frame_size, aliases, folders, sheets from anywhere);
+      it keeps working as before and overrides the folders of the same name.
+    - Order of precedence: built-in, packs, custom/<name>/ folders, custom/animations.lua.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.16.0
+Date: 2026-11-01
+  Features:
+    - BIG portrait: the character of the conversation window is now shown as large as a percentage of the screen
+      height (setting "Engineer: portrait size", default 75 %, also - / + buttons in the window), keeping the
+      aspect ratio of the frames. The placeholder art is drawn at 256x256 now.
+    - Customization. Factorio mods cannot scan a folder at runtime, so the folder is a manifest:
+        * custom/animations.lua: your sprite sheets (PNG next to it) -> new or replaced animations, aliases
+          (e.g. working = "my_hammering"), frame size, rows (`columns`), per-animation size;
+        * custom/dialogues.lua: the lines the Engineer says per situation (random pick, optional animation);
+        * custom/states.lua: register your own portrait states in Lua;
+        * PACKS: any other mod can bring a whole character with a "mod-data" prototype named
+          engineer-companion-pack-<name> (animations, aliases, dialogues), no editing of this mod needed.
+      See custom/README.md. Sprites are made in data-final-fixes.lua (after the packs are known), so changing
+      animations needs a game restart.
+    - scripts/dialogues.lua: built-in lines per situation (greeting, status_*, mode_*, research_finished...), used by
+      the window, the buttons and the "research finished" reaction.
+  Changes:
+    - Frame sprites are no longer made in data.lua (data-final-fixes.lua does it).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.15.1
+Date: 2026-11-01
+  Fixes:
+    - "Require can't be used outside of control.lua parsing": require() must not be called at runtime. The calls that
+      were made inside functions are gone: common.walk_towards uses the walker that scripts/pathing.lua registers
+      (common.walker), the mine task batching (scripts/demand.lua) registers in tasks/core.lua
+      (core.mine_batcher; it never worked in 0.13.2-0.15.0 because the error was swallowed by a pcall), the
+      interaction window requires crafting at the top, and the blueprint zones' restamp registers in zones.lua
+      (zones.restamper).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.15.0
+Date: 2026-11-01
+  Features:
+    - The Engineer has COLLISION now (data.lua no longer empties its collision mask: it is the player's, so
+      buildings, trees, cliffs and water stop it). scripts/pathing.lua: common.walk_towards walks straight while
+      that works, notices when it is stuck, asks the game for a path (surface.request_path with its own
+      bounding box and collision mask), follows the waypoints and goes on to the target. Following the player
+      uses it too. When the game finds no path twice (island, water...), it steps next to the target instead of
+      flying (tasks never hang). The build task steps aside when the Engineer itself stands on a ghost.
+    - Interact: a window with an animated PORTRAIT, like the talking-head screens of old games. Open it with
+      SHIFT+F, with E (open GUI) while pointing at the Engineer, or with the new "Talk" button of the main menu
+      (the Engineer has to be near you). Log of what it says, status line, buttons Status / Follow me / Wait here /
+      Auto-build / Open Engineer menu.
+        * scripts/portrait_animations.lua: the animations (sprite sheets in graphics/portrait/, 128x128 frames,
+          one horizontal strip each: idle, talk, working, thinking, happy, worried, tired). data.lua turns every
+          frame into a sprite prototype; the window swaps the sprite every few ticks. The art is PLACEHOLDER
+          (tools/make_portraits.py): overwrite a strip with real art of the same size and frame count.
+        * scripts/interaction.lua: what the portrait shows is decided by registered STATES
+          (interaction.register_state(id, priority, fn)); built in: event, blocked, working, waiting, research,
+          following, idle. interaction.notify(force, animation, line, seconds) shows an event (research finished
+          makes it happy). interaction.say(player, line) makes it talk.
+  Notes:
+    - The collision change cannot be tested without the game: if the Engineer still gets stuck somewhere, the
+      log line "no path to the target: stepped next to it" (data.nav_note) says where.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.14.0
+Date: 2026-11-01
+  Features:
+    - Zone blueprints: a building zone can be given a blueprint instead of the Engineer's hand-coded layout.
+      Main menu > "Zone blueprints" > "Assign blueprints...": one row per zone (red science factory, transport
+      belt factory, green science factory), each with Set / Clear. A blueprint is given as a pasted export string
+      (blueprint or blueprint book) or taken from the cursor; it is stored as a string, so it survives the
+      original being deleted. Without a blueprint nothing changes.
+    - A blueprint zone is planned like the other factories: a free dry spot near the power plant (same spacing
+      rules), the blueprint is really placed as ghosts there (all four turns tried, rolled back unless EVERY entity
+      fits), and a power line is run from the nearest powered pole to the blueprint's nearest electric pole. After
+      that auto-build, recipes, the power check and hand-feeding work as before. Ingredients that no other machine
+      of the blueprint makes are fed by hand; what the blueprint's own inserters and belts carry is left to them.
+    - A blueprint zone remembers its blueprint, place and turn: when part of it goes missing it is placed again
+      over the same spot (restores underground belt ends, recipes, inserter settings that a plain ghost loses).
+    - New zone "green_science_factory" (scripts/objectives/bp_factories.lua): exists ONLY when a blueprint is
+      assigned, and waits for the logistic science pack recipe. More such zones: one row in that file, one in
+      scripts/bpslots.lua, one line in the playbook.
+  Changes:
+    - factory_supply (the furnace -> factory belt line) leaves blueprint zones alone: it only knows the built-in
+      layout. Raw ingredients of a blueprint zone stay hand-fed until the blueprint brings its own supply.
+    - The zone list in the menu marks zones that were built from a blueprint.
+  Notes:
+    - Changing a zone's blueprint does not touch a zone that is already placed: erase the zone in the main menu
+      (Building zones) and the Engineer plans it again from the new blueprint.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.13.3
+Date: 2026-11-01
+  Fixes:
+    - The labs stopped being fed while logistics was researched: the "science" objective (in front of
+      research_packs_2) was busy building the extra labs of lab_expansion, and the Progress controller never got
+      to the feeding. Objectives can now be `background` (research_packs / research_packs_2): they are looked at
+      FIRST in every evaluation and only hold the others up while they have a task running.
+    - lab_expansion has `after_tech` (playbook: logistics): no lab beyond the first is planned before that
+      technology is researched. A lab needs 4 transport belts, which is what the companion was crafting. The
+      feed chest is still added at once.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.13.2
+Date: 2026-10-31
+  Fixes:
+    - Research: a PRIORITY technology (logistics) is now put first in the research queue as soon as the bootstrap
+      stage is over, even when another technology (steel-processing...) is already queued or the objectives in
+      front of research_packs_2 are still busy. It no longer has to be on the path to the target technology.
+  Features:
+    - Hand-mining covers what the zones need (scripts/demand.lua): when a mine task starts (tasks.start), its
+      target is raised so the same trip also gets everything the unbuilt entries of the zones are missing that
+      is made of that material - wood (poles, chests), stone (furnaces, boilers), and iron / copper ore for the
+      missing plates - minus what is carried, in chests or being crafted. Capped per trip (wood 100, stone 150,
+      ore 100). Fuel gathering (near / then_task) is not batched.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.13.1
+Date: 2026-10-31
+  Changes:
+    - Refuelling is scoped: an objective can set `upkeep_scope` (zone purposes). While belt_factory or
+      factory_supply is the focus, only the burners of iron_start, coal, power (and the furnace inserters of
+      factory_supply) are refuelled; copper and stone cells wait. The Progress controller sets
+      data.upkeep_scope each evaluation, upkeep.step honours it (also for the urgent refuel).
+    - Hand-feeding a factory delivers what the companion carries once it has 15 of the item, instead of waiting
+      for a full load (crafting belts for the supply line was eating the plates it had collected).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.13.0
+Date: 2026-10-31
+  Features:
+    - New objective "factory_supply" (playbook red-green, after belt_factory): connects the iron furnaces to the
+      belt factory. Phases: input belt row + inserters (+ pole) added to the factory zone on the side away from
+      the output; a belt path from every furnace to that row, found with a budgeted A* (avoids other zones, water,
+      buildings; later paths may side-load onto earlier ones); the belts are built first, then the burner
+      inserters that take the plates out of the furnaces (so the companion keeps its plates meanwhile); then the
+      machines stop counting iron plates as hand-fed. Belt line = extra zone "factory_supply".
+  Fixes:
+    - Factory machines get their recipe as soon as they stand (before the rest is finished / before the power check),
+      assembling machine ghosts carry the recipe, and the power line wires (existing pole -> line poles -> factory
+      pole) are connected explicitly when they did not connect themselves.
+  Changes:
+    - Output chest of the belt factory limited to 4 slots (400 belts): the assemblers wait instead of using up all
+      the plates once they are fed automatically (def.output_slots in factory_base).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.12.2
+Date: 2026-10-31
+  Changes:
+    - Factory power: the factory is placed first (ring search around the power plant, `spacing` tiles from the
+      other factories, nearest to the power network first). Then a power line is run to it from the NEAREST
+      POLE THAT HAS POWER: poles are at most as far apart as the LOWER wire reach of the two poles
+      (the existing one and the one placed), each as far along the way as possible, never inside another zone
+      or the factory, moved sideways when a spot is taken. The three nearest powered poles are tried.
+      Replaces the straight/bending chain that started at the engines (0.12.1).
+    - Zones can carry `box` (zones.create extra): the rectangle reserved is only the factory's machines; the
+      power line poles are still entries of the zone (zones.index_entities finds them one by one) but no
+      longer reserve a long strip of the map.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.12.1
+Date: 2026-10-31
+  Changes:
+    - Factories spread out: factory_base has a new `spacing` (tiles of free space between a factory and every
+      other factory; playbook param `spacing`, default 100 for the belt factory, 0 = old behaviour for the
+      science factory). The power line from the engines is as long as needed and may bend sideways (0-2 poles)
+      to get round obstacles; poles may pass between other zones but not through them, and only the machines
+      (not the pole line) must be free of ore and water. Zones remember `factory_box` (the machines only), so
+      the spacing is measured between machines, not along the pole line.
+    - When there is no spot with that much room the spacing is lowered step by step (75 %, 50 %, 25 %, 0)
+      instead of refusing; the chat debug line and the objective note say which spacing was reached.
+    - Fixes "no free spot next to the engines": the search is no longer limited to 3 extra poles, a straight
+      line and ore-free pole lines.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.12.0
+Date: 2026-10-31
+  Features:
+    - Rate calculator (scripts/rates.lua): inputs / outputs per second of the machines of a zone, with the
+      formulas of the "Rate Calculator" mod. That mod has no remote interface (selection tool + GUI only),
+      so it cannot be called from here and the companion carries the part it needs (crafters and labs).
+    - New objective "lab_expansion" (playbook stage red-green, after science_factory): measures what the
+      science factory makes per second and what ONE lab uses for the current research, and grows the
+      EXISTING lab zone until the labs use all of it (max_labs, default 8). No new zone is created.
+        * a chest + inserter is added next to the first lab; the companion drops the science packs into
+          that chest instead of choosing a lab, the inserter feeds the first ("parent") lab;
+        * every extra lab is a child 1 tile away from its parent with an inserter in the gap
+          (parent -> child) and a pole in the gap. The line runs away from the pole chain and turns
+          to the side of a lab when blocked.
+    - Lab zones now fix the direction of their inserters once built (like the factories).
+  Changes:
+    - research_packs: packs waiting in the feed chest count as "in the lab"; the feed chest is never used
+      as a source of packs (supply.find_chest takes a skip set); transfer task has a new slot "chest".
+
+---------------------------------------------------------------------------------------------------
+Version: 0.11.0
+Date: 2026-10-31
+  Features:
+    - Science factory: every science machine now gets its own gear wheel assembler (inserter in between).
+      Only copper plates (science machines) and iron plates (gear assemblers) are fed by hand.
+      Playbook param gear_assemblers = false restores the old all-by-hand layout. Factories planned by
+      0.10.0 keep working (their machines get their recipe automatically).
+    - New objective "belt_factory": once "logistics" is researched, a gear assembler feeds a transport
+      belt assembler that outputs into a chest. Iron plates are fed by hand for now.
+    - Research priority list (research.PRIORITY): "logistics" is researched before the cheapest
+      technology, so before steel-processing.
+    - The lab takes its science packs from the science factory's chests (objective research_packs_2).
+      While a science factory exists the companion waits for its packs instead of hand-crafting.
+  Changes:
+    - Factory planning moved to scripts/objectives/factory_base.lua (shared by both factories).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.10.0
+Date: 2026-10-31
+  Features:
+    - New objective "science_factory" (playbook stage red-green): builds 3 assembling machines set to
+      automation science, connected to the power plant by a pole chain, and feeds them by hand
+      (copper plates + hand-crafted gear wheels).
+    - Output: one inserter per assembler into its own chest. If enough transport belts are in stock
+      when the factory is planned, the inserters drop onto one belt that ends in an inserter + chest.
+    - transfer task: new insert slot "machine" (hand-feeds assembling machines).

@@ -1,0 +1,23 @@
+-- Your own voice situations (scripts/voice.lua). Loaded once at the start; `voice` is the voice module.
+--
+-- A situation = {id, detect = function(ctx) -> true when it is happening now, priority, cooldown (ticks),
+--                duration (ticks), positional (default true), group (default "voice_<id>")}
+-- ctx = {player, data, c (the companion), char (player's character or nil), tick, v (your per-companion table), cfg}
+--
+-- The sound: add a group named voice_<id> to sound/sounds.lua with the .ogg files (restart Factorio).
+-- The on/off setting of a situation is "ec-voice-<id>": it is ON when the setting does not exist.
+-- A text above the companion (setting ec-voice-captions): locale key  [ec-voice] line-<id>=...
+--
+-- Example (remove the comment marks): it says something when the player is low on health.
+--
+-- return function(voice)
+--   voice.register{
+--     id = "player_hurt", priority = 70, cooldown = 3600,
+--     detect = function(ctx)
+--       local char = ctx.char
+--       return char ~= nil and char.health ~= nil and char.health < 100
+--     end,
+--   }
+-- end
+
+return function(voice) end
