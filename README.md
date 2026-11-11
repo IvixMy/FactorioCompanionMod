@@ -10,15 +10,18 @@ There is no Space Age integration yet: the mod does not add anything specific to
 
 1. Open the Companion menu with the button at the **top left** of the screen.
 
-   ![Companion menu](docs/images/debugmenu.png)
+<img width="1920" height="1080" alt="debugmenu" src="https://github.com/user-attachments/assets/cf0387ec-3565-48e5-b03b-fd6ef789a012" />
+
 
 2. Click **Summon**.
 
-   ![Summon button](docs/images/summon.png)
+<img width="1920" height="1080" alt="summon" src="https://github.com/user-attachments/assets/4ddb19b4-bfab-4f92-b458-9651951796a5" />
+
 
 3. Pick a mode. For the best experience, choose **Base development**.
 
-   ![Base Development mode](docs/images/basedevelopment.png)
+![Uploading basedevelopment.png…]()
+
 
 ### Naming your Companion
 
