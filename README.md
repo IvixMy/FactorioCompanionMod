@@ -20,7 +20,8 @@ There is no Space Age integration yet: the mod does not add anything specific to
 
 3. Pick a mode. For the best experience, choose **Base development**.
 
-![Uploading basedevelopment.png…]()
+<img width="1920" height="1080" alt="basedevelopment" src="https://github.com/user-attachments/assets/1aab13fd-9c77-4493-a2f4-044f78b8d94a" />
+
 
 
 ### Naming your Companion
